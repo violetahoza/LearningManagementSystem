@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Progress: {{ student.get_full_name }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course_id=course.id %}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_students' course_id=course.id %}">Students</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ student.get_full_name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Student Progress</h1>
+            <h3 class="text-muted">{{ student.get_full_name }} - {{ course.title }}</h3>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if certificate %}
+                <div class="alert alert-success">
+                    <i class="bi bi-award"></i> Certificate issued on {{ certificate.issue_date|date:"F j, Y" }}
+                </div>
+            {% elif completion_percentage == 100 %}
+                <form method="post" action="{% url 'certificates:generate_certificate' course_id=course.id student_id=student.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-award"></i> Issue Certificate
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Overall Progress Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Overall Progress</h4>
+            <div class="progress mb-3" style="height: 25px;">
+                <div class="progress-bar bg-success" role="progressbar" 
+                     style="width: {{ completion_percentage }}%;" 
+                     aria-valuenow="{{ completion_percentage }}" 
+                     aria-valuemin="0" aria-valuemax="100">
+                    {{ completion_percentage|floatformat:1 }}%
+                </div>
+            </div>
+            <div class="d-flex justify-content-between">
+                <span>
+                    <strong>Status:</strong> 
+                    <span class="badge bg-{{ enrollment.status|yesno:'success,primary,danger' }}">
+                        {{ enrollment.get_status_display }}
+                    </span>
+                </span>
+                <span>
+                    <strong>Enrolled:</strong> {{ enrollment.enrolled_at|date:"F j, Y" }}
+                </span>
+                <span>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            Update Status
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <form method="post" action="{% url 'courses:course_students' course_id=course.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="enrollment_id" value="{{ enrollment.id }}">
+                                    <input type="hidden" name="status" value="enrolled">
+                                    <button type="submit" class="dropdown-item">Enrolled</button>
+                                </form>
+                            </li>
+                            <li>
+                                <form method="post" action="{% url 'courses:course_students' course_id=course.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="enrollment_id" value="{{ enrollment.id }}">
+                                    <input type="hidden" name="status" value="completed">
+                                    <button type="submit" class="dropdown-item">Completed</button>
+                                </form>
+                            </li>
+                            <li>
+                                <form method="post" action="{% url 'courses:course_students' course_id=course.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="enrollment_id" value="{{ enrollment.id }}">
+                                    <input type="hidden" name="status" value="dropped">
+                                    <button type="submit" class="dropdown-item">Dropped</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lessons Progress -->
+    <h2 class="mb-3">Lessons Progress</h2>
+    <div class="card mb-4">
+        <div class="list-group list-group-flush">
+            {% for lesson_progress in lessons_progress %}
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">{{ lesson_progress.lesson.title }}</h5>
+                            {% if lesson_progress.status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                            {% elif lesson_progress.status == 'in_progress' %}
+                                <span class="badge bg-primary">In Progress</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Not Started</span>
+                            {% endif %}
+                            
+                            {% if lesson_progress.last_accessed %}
+                                <small class="text-muted ms-2">Last accessed: {{ lesson_progress.last_accessed|date:"F j, Y, g:i a" }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quizzes Progress -->
+    {% if quizzes_progress %}
+        <h2 class="mb-3">Quizzes Progress</h2>
+        <div class="card mb-4">
+            <div class="list-group list-group-flush">
+                {% for quiz_progress in quizzes_progress %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">{{ quiz_progress.quiz.title }}</h5>
+                                {% if quiz_progress.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                    <small class="text-muted ms-2">Score: {{ quiz_progress.score|floatformat:1 }}/{{ quiz_progress.max_score }} ({{ quiz_progress.percentage|floatformat:1 }}%)</small>
+                                {% elif quiz_progress.status == 'in_progress' %}
+                                    <span class="badge bg-primary">In Progress</span>
+                                    <small class="text-muted ms-2">{{ quiz_progress.answered }}/{{ quiz_progress.total }} questions answered</small>
+                                {% else %}
+                                    <span class="badge bg-secondary">Not Started</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

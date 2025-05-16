@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">My Dashboard</h1>
+    
+    <!-- Overview Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-mortarboard-fill fs-1 mb-2"></i>
+                    <h3 class="card-title">{{ enrolled_courses|length }}</h3>
+                    <p class="card-text">Enrolled Courses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle-fill fs-1 mb-2"></i>
+                    <h3 class="card-title">{{ completed_courses }}</h3>
+                    <p class="card-text">Completed Courses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-award-fill fs-1 mb-2"></i>
+                    <h3 class="card-title">{{ certificates_count }}</h3>
+                    <p class="card-text">Certificates Earned</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up fs-1 mb-2"></i>
+                    <h3 class="card-title">{{ average_progress|floatformat:1 }}%</h3>
+                    <p class="card-text">Average Progress</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- In Progress Courses -->
+    <h2 class="mb-3">My Courses</h2>
+    {% if enrolled_courses %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+            {% for enrollment in enrolled_courses %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ enrollment.course.title }}</h5>
+                            <p class="card-text">{{ enrollment.course.description|truncatechars:100 }}</p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="bi bi-person-circle"></i> {{ enrollment.course.instructor.get_full_name }}
+                                </small>
+                            </p>
+                            <div class="progress mb-3">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ enrollment.progress_percentage }}%;" 
+                                     aria-valuenow="{{ enrollment.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ enrollment.progress_percentage|floatformat:0 }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{% url 'courses:course_detail' course_id=enrollment.course.id %}" class="btn btn-primary">Continue Learning</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i> You are not enrolled in any courses yet.
+            <a href="{% url 'courses:course_list' %}" class="btn btn-primary ms-3">Browse Courses</a>
+        </div>
+    {% endif %}
+    
+    <!-- Recent Certificates -->
+    {% if certificates %}
+        <h2 class="mb-3">Recent Certificates</h2>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+            {% for certificate in certificates %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <i class="bi bi-award text-warning fs-1"></i>
+                            </div>
+                            <h5 class="card-title text-center">{{ certificate.course.title }}</h5>
+                            <p class="text-muted text-center">
+                                <small>Issued on {{ certificate.issue_date|date:"F j, Y" }}</small>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent text-center">
+                            <a href="{% url 'certificates:certificate_detail' certificate_id=certificate.id %}" class="btn btn-primary">View Certificate</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mb-5">
+            <a href="{% url 'certificates:certificate_list' %}" class="btn btn-outline-primary">View All Certificates</a>
+        </div>
+    {% endif %}
+    
+    <!-- Recent Notifications -->
+    {% if recent_notifications %}
+        <h2 class="mb-3">Recent Notifications</h2>
+        <div class="card mb-5">
+            <div class="list-group list-group-flush">
+                {% for notification in recent_notifications %}
+                    <div class="list-group-item {% if not notification.is_read %}bg-light{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ notification.title }}</h5>
+                            <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">{{ notification.message }}</p>
+                        {% if not notification.is_read %}
+                            <a href="{% url 'notifications:mark_read' notification_id=notification.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-check"></i> Mark as Read
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="text-center mb-5">
+            <a href="{% url 'notifications:notification_list' %}" class="btn btn-outline-primary">View All Notifications</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

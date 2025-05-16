@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.title }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ course.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <h1>{{ course.title }}</h1>
+            <p class="lead text-muted">
+                <i class="bi bi-person-circle"></i> {{ course.instructor.get_full_name }}
+            </p>
+            
+            {% if is_enrolled %}
+                <div class="alert alert-success mb-4">
+                    <i class="bi bi-check-circle-fill"></i> You are enrolled in this course.
+                    <a href="{% url 'progress:course_progress' course_id=course.id %}" class="btn btn-primary ms-2">
+                        <i class="bi bi-bar-chart"></i> Track Progress
+                    </a>
+                </div>
+            {% elif user.is_student %}
+                <div class="mb-4">
+                    <a href="{% url 'courses:enroll_course' course_id=course.id %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-play-fill"></i> Enroll Now
+                    </a>
+                </div>
+            {% endif %}
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="card-title mb-0">Course Description</h2>
+                </div>
+                <div class="card-body">
+                    <p>{{ course.description|linebreaks }}</p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <p><strong><i class="bi bi-calendar"></i> Start Date:</strong> {{ course.start_date|date:"F j, Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="bi bi-calendar-check"></i> End Date:</strong> {{ course.end_date|date:"F j, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lessons Section -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="card-title mb-0">Lessons</h2>
+                    {% if is_instructor %}
+                        <a href="{% url 'lessons:create_lesson' course_id=course.id %}" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Add Lesson
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if lessons %}
+                        <div class="list-group">
+                            {% for lesson_data in lessons %}
+                                {% if is_instructor %}
+                                    <!-- Instructor View -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-0">{{ forloop.counter }}. {{ lesson_data.lesson.title }}</h5>
+                                            </div>
+                                            <div>
+                                                <a href="{% url 'lessons:lesson_detail' lesson_id=lesson_data.lesson.id %}" class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-eye"></i> View
+                                                </a>
+                                                <a href="{% url 'lessons:edit_lesson' lesson_id=lesson_data.lesson.id %}" class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                                <a href="{% url 'lessons:delete_lesson' lesson_id=lesson_data.lesson.id %}" class="btn btn-sm btn-danger">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% elif is_enrolled %}
+                                    <!-- Enrolled Student View -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-0">{{ forloop.counter }}. {{ lesson_data.lesson.title }}</h5>
+                                                {% if lesson_data.status == 'completed' %}
+                                                    <span class="badge bg-success">Completed</span>
+                                                {% elif lesson_data.status == 'in_progress' %}
+                                                    <span class="badge bg-primary">In Progress</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Not Started</span>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <a href="{% url 'lessons:lesson_detail' lesson_id=lesson_data.lesson.id %}" class="btn btn-sm btn-primary">
+                                                    {% if lesson_data.status == 'completed' %}
+                                                        <i class="bi bi-eye"></i> Review
+                                                    {% elif lesson_data.status == 'in_progress' %}
+                                                        <i class="bi bi-arrow-right"></i> Continue
+                                                    {% else %}
+                                                        <i class="bi bi-play"></i> Start
+                                                    {% endif %}
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <!-- Non-enrolled View -->
+                                    <div class="list-group-item">
+                                        <h5 class="mb-0">{{ forloop.counter }}. {{ lesson_data.lesson.title }}</h5>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill"></i> No lessons have been added to this course yet.
+                            {% if is_instructor %}
+                                <a href="{% url 'lessons:create_lesson' course_id=course.id %}" class="btn btn-sm btn-primary ms-2">
+                                    Add Lesson
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Quizzes Section -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="card-title mb-0">Quizzes</h2>
+                    {% if is_instructor %}
+                        <a href="{% url 'quizzes:create_quiz' course_id=course.id %}" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Add Quiz
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if quizzes %}
+                        <div class="list-group">
+                            {% for quiz_data in quizzes %}
+                                {% if is_instructor %}
+                                    <!-- Instructor View -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-0">{{ quiz_data.quiz.title }}</h5>
+                                                <small class="text-muted">Total Marks: {{ quiz_data.quiz.total_marks }}</small>
+                                            </div>
+                                            <div>
+                                                <a href="{% url 'quizzes:quiz_detail' quiz_id=quiz_data.quiz.id %}" class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-eye"></i> View
+                                                </a>
+                                                <a href="{% url 'quizzes:edit_quiz' quiz_id=quiz_data.quiz.id %}" class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                                <a href="{% url 'quizzes:quiz_statistics' quiz_id=quiz_data.quiz.id %}" class="btn btn-sm btn-info">
+                                                    <i class="bi bi-bar-chart"></i> Statistics
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% elif is_enrolled %}
+                                    <!-- Enrolled Student View -->
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-0">{{ quiz_data.quiz.title }}</h5>
+                                                <small class="text-muted">Total Marks: {{ quiz_data.quiz.total_marks }}</small>
+                                                {% if quiz_data.status == 'completed' %}
+                                                    <span class="badge bg-success ms-2">Completed</span>
+                                                    <small class="text-muted ms-2">Score: {{ quiz_data.score }}/{{ quiz_data.max_score }}</small>
+                                                {% elif quiz_data.status == 'in_progress' %}
+                                                    <span class="badge bg-primary ms-2">In Progress</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary ms-2">Not Started</span>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                {% if quiz_data.status == 'completed' %}
+                                                    <a href="{% url 'quizzes:quiz_results' quiz_id=quiz_data.quiz.id %}" class="btn btn-sm btn-primary">
+                                                        <i class="bi bi-eye"></i> View Results
+                                                    </a>
+                                                {% else %}
+                                                    <a href="{% url 'quizzes:quiz_attempt' quiz_id=quiz_data.quiz.id %}" class="btn btn-sm btn-primary">
+                                                        {% if quiz_data.status == 'in_progress' %}
+                                                            <i class="bi bi-arrow-right"></i> Continue
+                                                        {% else %}
+                                                            <i class="bi bi-play"></i> Start
+                                                        {% endif %}
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <!-- Non-enrolled View -->
+                                    <div class="list-group-item">
+                                        <h5 class="mb-0">{{ quiz_data.quiz.title }}</h5>
+                                        <small class="text-muted">Total Marks: {{ quiz_data.quiz.total_marks }}</small>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill"></i> No quizzes have been added to this course yet.
+                            {% if is_instructor %}
+                                <a href="{% url 'quizzes:create_quiz' course_id=course.id %}" class="btn btn-sm btn-primary ms-2">
+                                    Add Quiz
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Course Information Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">Course Information</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-book"></i> Lessons</span>
+                            <span class="badge bg-primary rounded-pill">{{ lessons|length }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-question-circle"></i> Quizzes</span>
+                            <span class="badge bg-primary rounded-pill">{{ quizzes|length }}</span>
+                        </li>
+                        {% if is_instructor %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-people"></i> Students Enrolled</span>
+                                <span class="badge bg-primary rounded-pill">{{ course.get_enrollments_count }}</span>
+                            </li>
+                        {% endif %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-calendar-check"></i> Status</span>
+                            <span class="badge {% if course.is_active %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+                                {% if course.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Course Actions Card -->
+            {% if is_instructor %}
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="card-title mb-0">Instructor Actions</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'courses:edit_course' course_id=course.id %}" class="btn btn-warning">
+                                <i class="bi bi-pencil"></i> Edit Course
+                            </a>
+                            <a href="{% url 'courses:course_students' course_id=course.id %}" class="btn btn-info">
+                                <i class="bi bi-people"></i> Manage Students
+                            </a>
+                            <a href="{% url 'courses:course_statistics' course_id=course.id %}" class="btn btn-primary">
+                                <i class="bi bi-bar-chart"></i> View Statistics
+                            </a>
+                            <a href="{% url 'lessons:reorder_lessons' course_id=course.id %}" class="btn btn-secondary">
+                                <i class="bi bi-sort-numeric-down"></i> Reorder Lessons
+                            </a>
+                            <a href="{% url 'courses:delete_course' course_id=course.id %}" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Delete Course
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

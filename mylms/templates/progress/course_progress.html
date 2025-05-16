@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Course Progress: {{ course.title }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course_id=course.id %}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Progress</li>
+        </ol>
+    </nav>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Course Progress</h1>
+            <h3 class="text-muted">{{ course.title }}</h3>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if is_completed and certificate %}
+                <a href="{% url 'certificates:certificate_detail' certificate_id=certificate.id %}" class="btn btn-success btn-lg">
+                    <i class="bi bi-award"></i> View Certificate
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Overall Progress Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Overall Progress</h4>
+            <div class="progress mb-3" style="height: 25px;">
+                <div class="progress-bar bg-success" role="progressbar" 
+                     style="width: {{ completion_percentage }}%;" 
+                     aria-valuenow="{{ completion_percentage }}" 
+                     aria-valuemin="0" aria-valuemax="100">
+                    {{ completion_percentage|floatformat:1 }}%
+                </div>
+            </div>
+            <div class="d-flex justify-content-between">
+                <span>
+                    <strong>Status:</strong> 
+                    {% if is_completed %}
+                        <span class="badge bg-success">Completed</span>
+                    {% else %}
+                        <span class="badge bg-primary">In Progress</span>
+                    {% endif %}
+                </span>
+                <span>
+                    <strong>Enrolled:</strong> {{ enrollment.enrolled_at|date:"F j, Y" }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lessons Progress -->
+    <h2 class="mb-3">Lessons Progress</h2>
+    <div class="card mb-4">
+        <div class="list-group list-group-flush">
+            {% for lesson_progress in lessons_progress %}
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">{{ lesson_progress.lesson.title }}</h5>
+                            {% if lesson_progress.status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                            {% elif lesson_progress.status == 'in_progress' %}
+                                <span class="badge bg-primary">In Progress</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Not Started</span>
+                            {% endif %}
+                            
+                            {% if lesson_progress.last_accessed %}
+                                <small class="text-muted ms-2">Last accessed: {{ lesson_progress.last_accessed|date:"F j, Y, g:i a" }}</small>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            {% if lesson_progress.status == 'completed' %}
+                                <span class="text-success"><i class="bi bi-check-circle-fill fs-4"></i></span>
+                            {% else %}
+                                <a href="{% url 'lessons:lesson_detail' lesson_id=lesson_progress.lesson.id %}" class="btn btn-primary btn-sm">
+                                    {% if lesson_progress.status == 'in_progress' %}
+                                        Continue
+                                    {% else %}
+                                        Start
+                                    {% endif %}
+                                </a>
+                                
+                                {% if lesson_progress.status == 'in_progress' and lesson_progress.progress_id %}
+                                    <form method="post" action="{% url 'progress:update_progress' progress_id=lesson_progress.progress_id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="completed">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="bi bi-check"></i> Mark Complete
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quizzes Progress -->
+    {% if quizzes_progress %}
+        <h2 class="mb-3">Quizzes Progress</h2>
+        <div class="card mb-4">
+            <div class="list-group list-group-flush">
+                {% for quiz_progress in quizzes_progress %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">{{ quiz_progress.quiz.title }}</h5>
+                                {% if quiz_progress.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                    <small class="text-muted ms-2">Score: {{ quiz_progress.score|floatformat:1 }}/{{ quiz_progress.max_score }} ({{ quiz_progress.percentage|floatformat:1 }}%)</small>
+                                {% elif quiz_progress.status == 'in_progress' %}
+                                    <span class="badge bg-primary">In Progress</span>
+                                    <small class="text-muted ms-2">{{ quiz_progress.answered }}/{{ quiz_progress.total }} questions answered</small>
+                                {% else %}
+                                    <span class="badge bg-secondary">Not Started</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                {% if quiz_progress.status == 'completed' %}
+                                    <a href="{% url 'quizzes:quiz_results' quiz_id=quiz_progress.quiz.id %}" class="btn btn-primary btn-sm">
+                                        View Results
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'quizzes:quiz_attempt' quiz_id=quiz_progress.quiz.id %}" class="btn btn-primary btn-sm">
+                                        {% if quiz_progress.status == 'in_progress' %}
+                                            Continue Quiz
+                                        {% else %}
+                                            Start Quiz
+                                        {% endif %}
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
