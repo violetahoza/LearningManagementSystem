@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Certificate: {{ certificate.course.title }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'certificates:certificate_list' %}">Certificates</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ certificate.course.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card mb-4">
+                <div class="card-body p-0">
+                    <div class="certificate">
+                        <div class="certificate-title">Certificate of Completion</div>
+                        <div class="certificate-content">
+                            This is to certify that
+                            <div class="certificate-name">{{ certificate.user.get_full_name }}</div>
+                            has successfully completed the course
+                            <div class="certificate-name">{{ certificate.course.title }}</div>
+                            with all the requirements.
+                        </div>
+                        <div class="certificate-date">
+                            Issued on {{ certificate.issue_date|date:"F j, Y" }}
+                        </div>
+                        <div class="certificate-code">
+                            Certificate ID: {{ certificate.certificate_code }}
+                        </div>
+                        <div class="certificate-seal">
+                            {{ site_name }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mb-5">
+                <a href="{% url 'certificates:download_certificate' certificate_id=certificate.id %}" class="btn btn-primary">
+                    <i class="bi bi-download"></i> Download Certificate
+                </a>
+                <a href="{% url 'certificates:certificate_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Certificates
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    Certificate Details
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th>Course:</th>
+                            <td>{{ certificate.course.title }}</td>
+                        </tr>
+                        <tr>
+                            <th>Instructor:</th>
+                            <td>{{ certificate.course.instructor.get_full_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Issue Date:</th>
+                            <td>{{ certificate.issue_date|date:"F j, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Certificate ID:</th>
+                            <td>{{ certificate.certificate_code }}</td>
+                        </tr>
+                        <tr>
+                            <th>Verification Link:</th>
+                            <td>
+                                <a href="{% url 'certificates:verify_certificate' certificate_code=certificate.certificate_code %}">
+                                    Verify Certificate
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,151 @@
+/* General Styles */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Card Styles */
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Course List */
+.course-card {
+    height: 100%;
+}
+
+.course-card .card-footer {
+    background-color: transparent;
+}
+
+/* Dashboard Styles */
+.stats-card {
+    text-align: center;
+    padding: 1rem;
+}
+
+.stats-card i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.stats-card .stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.stats-card .stat-label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+/* Lesson Styles */
+.lesson-content {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.lesson-video {
+    width: 100%;
+    aspect-ratio: 16/9;
+    margin-bottom: 1.5rem;
+}
+
+.lesson-navigation {
+    margin-top: 2rem;
+}
+
+/* Quiz Styles */
+.question-text {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+/* Certificate Styles */
+.certificate {
+    position: relative;
+    padding: 30px;
+    border: 15px solid #1565c0;
+    background-color: #fff;
+    color: #000;
+    font-family: "Times New Roman", serif;
+    text-align: center;
+}
+
+.certificate-title {
+    font-size: 40px;
+    margin-bottom: 20px;
+    color: #1565c0;
+}
+
+.certificate-content {
+    margin: 30px 0;
+    font-size: 20px;
+}
+
+.certificate-name {
+    font-size: 30px;
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+.certificate-date {
+    font-size: 18px;
+    margin-top: 40px;
+}
+
+.certificate-code {
+    font-size: 12px;
+    margin-top: 30px;
+    color: #666;
+}
+
+.certificate-seal {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid #1565c0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1565c0;
+    font-weight: bold;
+    font-size: 16px;
+    transform: rotate(-15deg);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .certificate-title {
+        font-size: 30px;
+    }
+    
+    .certificate-content {
+        font-size: 16px;
+    }
+    
+    .certificate-name {
+        font-size: 24px;
+    }
+    
+    .certificate-seal {
+        width: 80px;
+        height: 80px;
+        font-size: 14px;
+    }
+}

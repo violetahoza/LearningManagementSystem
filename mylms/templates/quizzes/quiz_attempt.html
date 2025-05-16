@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Attempt Quiz: {{ quiz.title }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course_id=quiz.course.id %}">{{ quiz.course.title }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'quizzes:quiz_detail' quiz_id=quiz.id %}">{{ quiz.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Attempt</li>
+        </ol>
+    </nav>
+
+    <h1>{{ quiz.title }}</h1>
+    <p class="text-muted">Total Marks: {{ quiz.total_marks }}</p>
+    
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle-fill"></i> Answer all questions below and click "Submit" when you're done.
+    </div>
+    
+    <form method="post" action="{% url 'quizzes:quiz_submit' quiz_id=quiz.id %}">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Question {{ forloop.counter }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="question-text">{{ field.label }}</p>
+                    
+                    {% if field.field.widget.input_type == 'radio' %}
+                        <div class="form-group">
+                            {{ field }}
+                        </div>
+                    {% else %}
+                        <div class="form-group">
+                            {{ field }}
+                        </div>
+                    {% endif %}
+                    
+                    {% if field.errors %}
+                        <div class="text-danger">
+                            {% for error in field.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+        
+        <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-5">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-check-circle"></i> Submit Quiz
+            </button>
+            <a href="{% url 'quizzes:quiz_detail' quiz_id=quiz.id %}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-x-circle"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add a confirmation before leaving the page
+    window.addEventListener('beforeunload', function(e) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+    });
+    
+    // Remove the confirmation when the form is submitted
+    document.querySelector('form').addEventListener('submit', function() {
+        window.removeEventListener('beforeunload', function() {});
+    });
+</script>
+{% endblock %}

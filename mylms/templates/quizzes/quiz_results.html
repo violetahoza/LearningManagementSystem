@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz Results: {{ quiz.title }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course_id=quiz.course.id %}">{{ quiz.course.title }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'quizzes:quiz_detail' quiz_id=quiz.id %}">{{ quiz.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Results</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Quiz Results: {{ quiz.title }}</h1>
+            <p class="text-muted">Course: {{ quiz.course.title }}</p>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Your Score</h5>
+                </div>
+                <div class="card-body">
+                    <h2 class="text-center">{{ total_score }} / {{ quiz.total_marks }}</h2>
+                    <div class="progress mb-3">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                            {% spaceless %}style="width: {% if percentage %}{{ percentage }}{% else %}0{% endif %}%;"{% endspaceless %}
+                            aria-valuenow="{{ percentage|default:'0' }}" 
+                            aria-valuemin="0" aria-valuemax="100">
+                            {{ percentage|floatformat:1 }}%
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        {% if percentage >= 70 %}
+                            <div class="alert alert-success">
+                                <i class="bi bi-trophy"></i> Great job! You passed the quiz successfully.
+                            </div>
+                        {% elif percentage >= 50 %}
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-circle"></i> You passed the quiz, but there's room for improvement.
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <i class="bi bi-x-circle"></i> Unfortunately, you didn't pass the quiz. Consider reviewing the material and trying again.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <h3>Question Results</h3>
+            {% for answer in answers %}
+                <div class="card mb-3">
+                    <div class="card-header {% if answer.is_correct %}bg-success{% else %}bg-danger{% endif %} text-white">
+                        <h5 class="card-title mb-0">Question {{ forloop.counter }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>{{ answer.question.question_text }}</strong></p>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Your Answer:</strong></p>
+                                <p>{{ answer.answer_text }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Correct Answer:</strong></p>
+                                <p>{{ answer.question.correct_answer }}</p>
+                            </div>
+                        </div>
+                        
+                        <p><strong>Score:</strong> {{ answer.marks_obtained }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <div class="text-center mb-5">
+                <a href="{% url 'courses:course_detail' course_id=quiz.course.id %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-arrow-left"></i> Back to Course
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4 sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Questions:</strong> {{ answers|length }}</p>
+                    <p><strong>Correct Answers:</strong> {{ correct_count }}</p>
+                    <p><strong>Score:</strong> {{ total_score }} / {{ quiz.total_marks }}</p>
+                    <p><strong>Percentage:</strong> {{ percentage }}%</p>
+                    <p><strong>Completed On:</strong> {{ answers.0.submitted_at|date:"F j, Y, g:i a" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

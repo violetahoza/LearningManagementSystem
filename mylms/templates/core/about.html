@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}About - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="mb-4">About {{ site_name }}</h1>
+            
+            <p class="lead">{{ site_name }} is a comprehensive Learning Management System designed to facilitate online education through an intuitive and feature-rich platform.</p>
+            
+            <h2 class="mt-5">Our Mission</h2>
+            <p>Our mission is to make quality education accessible to everyone, everywhere. We believe in the power of knowledge and its ability to transform lives.</p>
+            
+            <h2 class="mt-5">Platform Features</h2>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="bi bi-laptop text-primary me-2"></i>Interactive Courses</h5>
+                            <p class="card-text">Engage with multimedia content, quizzes, and assignments designed to enhance the learning experience.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="bi bi-trophy text-primary me-2"></i>Achievement System</h5>
+                            <p class="card-text">Earn certificates upon course completion to showcase your newly acquired skills and knowledge.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="bi bi-graph-up text-primary me-2"></i>Progress Tracking</h5>
+                            <p class="card-text">Monitor your learning journey with detailed progress reports and analytics.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="bi bi-people text-primary me-2"></i>Community Learning</h5>
+                            <p class="card-text">Connect with instructors and fellow learners to enhance your educational experience.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h2 class="mt-5">Our Team</h2>
+            <p>Our team consists of educators, developers, and designers who are passionate about creating an optimal learning environment. We are dedicated to continuously improving the platform based on user feedback and educational best practices.</p>
+            
+            <div class="text-center mt-5">
+                <a href="{% url 'core:contact' %}" class="btn btn-primary btn-lg">Get in Touch</a>
+                <a href="{% url 'courses:course_list' %}" class="btn btn-outline-primary btn-lg ms-2">Browse Courses</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

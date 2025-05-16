@@ -13,7 +13,7 @@ urlpatterns = [
     path('progress/', include('progress.urls')),
     path('certificates/', include('certificates.urls')),
     path('notifications/', include('notifications.urls')),
-    path('api/', include('api.urls')),  # We'll keep the API endpoints separate
+    path('api/', include('api.urls')),  # API endpoints 
 ]
 
 # Serve media files in development

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}My Certificates - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">
+        {% if is_student %}
+            My Certificates
+        {% else %}
+            Certificates
+        {% endif %}
+    </h1>
+    
+    {% if certificates %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+            {% for certificate in certificates %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <i class="bi bi-award text-warning fs-1"></i>
+                            </div>
+                            <h5 class="card-title text-center">{{ certificate.course.title }}</h5>
+                            {% if not is_student %}
+                                <p class="text-center">
+                                    <span class="badge bg-primary">{{ certificate.user.get_full_name }}</span>
+                                </p>
+                            {% endif %}
+                            <p class="text-muted text-center">
+                                <small>Issued on {{ certificate.issue_date|date:"F j, Y" }}</small>
+                            </p>
+                            <p class="text-center small">
+                                Certificate ID: {{ certificate.certificate_code }}
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent text-center">
+                            <a href="{% url 'certificates:certificate_detail' certificate_id=certificate.id %}" class="btn btn-primary">View Certificate</a>
+                            <a href="{% url 'certificates:download_certificate' certificate_id=certificate.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i> 
+            {% if is_student %}
+                You have not earned any certificates yet. Complete courses to earn certificates.
+                <a href="{% url 'courses:course_list' %}" class="btn btn-primary ms-3">Browse Courses</a>
+            {% else %}
+                No certificates have been issued yet.
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

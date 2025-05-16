@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'progress',
     'notifications',
     'certificates',
+    'api',
 ]
 
 # Configure custom user model
@@ -166,3 +167,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Login redirect
+LOGIN_REDIRECT_URL = 'core:dashboard'
+LOGIN_URL = 'accounts:login'

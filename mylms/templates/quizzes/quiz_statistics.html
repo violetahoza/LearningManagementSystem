@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz Statistics: {{ quiz.title }} - {{ site_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        transition: transform 0.3s;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course_id=course.id %}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'quizzes:quiz_detail' quiz_id=quiz.id %}">{{ quiz.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Statistics</li>
+        </ol>
+    </nav>
+
+    <h1>Quiz Statistics: {{ quiz.title }}</h1>
+    <p class="text-muted">Course: {{ course.title }}</p>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white stats-card">
+                <div class="card-body text-center">
+                    <h1 class="display-4">{{ total_attempts }}</h1>
+                    <p class="lead">Total Attempts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white stats-card">
+                <div class="card-body text-center">
+                    <h1 class="display-4">{{ avg_score|floatformat:1 }}</h1>
+                    <p class="lead">Average Score</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white stats-card">
+                <div class="card-body text-center">
+                    <h1 class="display-4">{{ avg_percentage|floatformat:1 }}%</h1>
+                    <p class="lead">Average Percentage</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-secondary text-white stats-card">
+                <div class="card-body text-center">
+                    <h1 class="display-4">{{ quiz.total_marks }}</h1>
+                    <p class="lead">Total Marks</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if question_stats %}
+        <h2>Question Statistics</h2>
+        <div class="table-responsive mb-4">
+            <table class="table table-striped table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Question</th>
+                        <th>Type</th>
+                        <th>Total Answers</th>
+                        <th>Correct Answers</th>
+                        <th>Success Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in question_stats %}
+                        <tr>
+                            <td>{{ stat.question.question_text }}</td>
+                            <td>{{ stat.question.get_question_type_display }}</td>
+                            <td>{{ stat.total_answers }}</td>
+                            <td>{{ stat.correct_answers }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar {% if stat.success_rate >= 70 %}bg-success{% elif stat.success_rate >= 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         role="progressbar" 
+                                         aria-valuenow="{{ stat.success_rate }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ stat.success_rate|floatformat:1 }}%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const progressBars = document.querySelectorAll('.progress-bar');
+                progressBars.forEach(bar => {
+                    const value = bar.getAttribute('aria-valuenow');
+                    bar.style.width = value + '%';
+                });
+            });
+        </script>
+    {% endif %}
+    
+    {% if student_scores %}
+        <h2>Student Performance</h2>
+        <div class="table-responsive mb-4">
+            <table class="table table-striped table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Student</th>
+                        <th>Score</th>
+                        <th>Percentage</th>
+                        <th>Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in student_scores %}
+                        <tr>
+                            <td>{{ student.student.get_full_name }}</td>
+                            <td>{{ student.score|floatformat:1 }} / {{ quiz.total_marks }}</td>
+                            <td>{{ student.percentage|floatformat:1 }}%</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar {% if student.percentage >= 70 %}bg-success{% elif student.percentage >= 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         role="progressbar" 
+                                         aria-valuenow="{{ student.percentage }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ student.percentage|floatformat:1 }}%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const progressBars = document.querySelectorAll('.progress-bar');
+                progressBars.forEach(bar => {
+                    const value = bar.getAttribute('aria-valuenow');
+                    bar.style.width = value + '%';
+                });
+            });
+        </script>
+    {% endif %}
+    
+    <div class="text-center mb-5">
+        <a href="{% url 'quizzes:quiz_detail' quiz_id=quiz.id %}" class="btn btn-primary">
+            <i class="bi bi-arrow-left"></i> Back to Quiz
+        </a>
+    </div>
+</div>
+{% endblock %}

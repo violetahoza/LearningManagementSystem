@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Question - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course_id=course.id %}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'quizzes:quiz_detail' quiz_id=quiz.id %}">{{ quiz.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ action }} Question</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h1 class="card-title text-center mb-4">{{ action }} Question</h1>
+                    <p class="text-center mb-4">Quiz: {{ quiz.title }} ({{ questions_count }} questions)</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.question_text.id_for_label }}" class="form-label">Question Text</label>
+                            {{ form.question_text }}
+                            {% if form.question_text.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.question_text.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.question_type.id_for_label }}" class="form-label">Question Type</label>
+                            {{ form.question_type }}
+                            {% if form.question_type.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.question_type.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3" id="options-container">
+                            <label for="{{ form.options.id_for_label }}" class="form-label">Options</label>
+                            <small class="form-text text-muted d-block mb-2">For multiple choice questions, enter each option on a new line.</small>
+                            {{ form.options }}
+                            {% if form.options.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.options.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.correct_answer.id_for_label }}" class="form-label">Correct Answer</label>
+                            <small class="form-text text-muted d-block mb-2" id="correct-answer-help">For multiple choice, this must match one of the options exactly.</small>
+                            {{ form.correct_answer }}
+                            {% if form.correct_answer.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.correct_answer.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'quizzes:quiz_detail' quiz_id=quiz.id %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary" name="save">Save Question</button>
+                            {% if action == 'Create' %}
+                                <button type="submit" class="btn btn-success" name="save_and_add">Save & Add Another</button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const questionTypeSelect = document.getElementById('question-type-select');
+        const optionsContainer = document.getElementById('options-container');
+        const correctAnswerHelp = document.getElementById('correct-answer-help');
+        
+        function updateVisibility() {
+            if (questionTypeSelect.value === 'MCQ') {
+                optionsContainer.style.display = 'block';
+                correctAnswerHelp.textContent = 'For multiple choice, this must match one of the options exactly.';
+            } else if (questionTypeSelect.value === 'true_false') {
+                optionsContainer.style.display = 'none';
+                correctAnswerHelp.textContent = 'Enter either "true" or "false" (lowercase).';
+            } else {
+                optionsContainer.style.display = 'none';
+                correctAnswerHelp.textContent = 'Enter the correct answer for this question.';
+            }
+        }
+        
+        // Set initial state
+        updateVisibility();
+        
+        // Add change event listener
+        questionTypeSelect.addEventListener('change', updateVisibility);
+    });
+</script>
+{% endblock %}
