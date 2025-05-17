@@ -1,0 +1,640 @@
+{% extends 'base.html' %}
+
+{% block title %}API Documentation - {{ site_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    pre {
+        background-color: #f5f5f5;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+    }
+    
+    .endpoint {
+        margin-bottom: 30px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 20px;
+    }
+    
+    .method {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        color: white;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    
+    .method-get {
+        background-color: #61affe;
+    }
+    
+    .method-post {
+        background-color: #49cc90;
+    }
+    
+    .method-put {
+        background-color: #fca130;
+    }
+    
+    .method-delete {
+        background-color: #f93e3e;
+    }
+    
+    .response-code {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    
+    .response-success {
+        background-color: #e8f5e9;
+        color: #388e3c;
+    }
+    
+    .response-error {
+        background-color: #ffebee;
+        color: #d32f2f;
+    }
+    
+    .response-info {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    .section-title {
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 5px;
+        margin-top: 40px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">API Documentation</h1>
+    
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle-fill"></i> 
+        This documentation provides details about the available API endpoints for the Learning Management System.
+        All API requests require authentication using JWT (JSON Web Token).
+    </div>
+    
+    <h2 class="section-title">Authentication</h2>
+    
+    <div class="endpoint">
+        <h3><span class="method method-post">POST</span> /api/auth/login/</h3>
+        <p>Authenticate and receive a JWT token for API access</p>
+        
+        <h4>Request</h4>
+        <pre>
+{
+  "username": "username",
+  "password": "password"
+}
+        </pre>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - Authentication successful</p>
+        <pre>
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "username",
+    "email": "user@example.com",
+    "first_name": "First",
+    "last_name": "Last",
+    "role": "student"
+  }
+}
+        </pre>
+        
+        <p><span class="response-code response-error">401 UNAUTHORIZED</span> - Invalid credentials</p>
+        <pre>
+{
+  "error": "Invalid credentials"
+}
+        </pre>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-post">POST</span> /api/auth/register/</h3>
+        <p>Register a new user account</p>
+        
+        <h4>Request</h4>
+        <pre>
+{
+  "username": "newuser",
+  "password": "securepassword",
+  "password2": "securepassword",
+  "email": "newuser@example.com",
+  "first_name": "New",
+  "last_name": "User",
+  "role": "student"
+}
+        </pre>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">201 CREATED</span> - Registration successful</p>
+        <pre>
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 5,
+    "username": "newuser",
+    "email": "newuser@example.com",
+    "first_name": "New",
+    "last_name": "User",
+    "role": "student"
+  }
+}
+        </pre>
+        
+        <p><span class="response-code response-error">400 BAD REQUEST</span> - Validation errors</p>
+        <pre>
+{
+  "username": ["A user with that username already exists."],
+  "password": ["Password fields didn't match."]
+}
+        </pre>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-post">POST</span> /api/auth/refresh-token/</h3>
+        <p>Refresh an expired JWT token</p>
+        
+        <h4>Request</h4>
+        <pre>
+{
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+        </pre>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - Token refreshed successfully</p>
+        <pre>
+{
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+        </pre>
+        
+        <p><span class="response-code response-error">401 UNAUTHORIZED</span> - Invalid or expired token</p>
+        <pre>
+{
+  "detail": "Token is invalid or expired",
+  "code": "token_not_valid"
+}
+        </pre>
+    </div>
+    
+    <h2 class="section-title">Courses</h2>
+    
+    <div class="endpoint">
+        <h3><span class="method method-get">GET</span> /api/courses/</h3>
+        <p>Get a list of all courses (filterable by instructor if teacher, restricted to enrolled courses if student)</p>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - List of courses</p>
+        <pre>
+[
+  {
+    "id": 1,
+    "title": "Introduction to Programming",
+    "description": "Learn programming basics",
+    "instructor": 2,
+    "instructor_name": "Teacher Name",
+    "start_date": "2025-05-01",
+    "end_date": "2025-06-30",
+    "lessons_count": 10,
+    "enrollments_count": 25,
+    "is_active": true,
+    "created_at": "2025-04-15T10:30:00Z",
+    "updated_at": "2025-04-16T14:25:00Z"
+  },
+  ...
+]
+        </pre>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-post">POST</span> /api/courses/</h3>
+        <p>Create a new course (teacher only)</p>
+        
+        <h4>Request</h4>
+        <pre>
+{
+  "title": "New Course Title",
+  "description": "Course description",
+  "start_date": "2025-06-01",
+  "end_date": "2025-07-31"
+}
+        </pre>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">201 CREATED</span> - Course created successfully</p>
+        <pre>
+{
+  "id": 5,
+  "title": "New Course Title",
+  "description": "Course description",
+  "instructor": 2,
+  "instructor_name": "Teacher Name",
+  "start_date": "2025-06-01",
+  "end_date": "2025-07-31",
+  "lessons_count": 0,
+  "enrollments_count": 0,
+  "is_active": false,
+  "created_at": "2025-05-17T12:00:00Z",
+  "updated_at": "2025-05-17T12:00:00Z"
+}
+        </pre>
+        
+        <p><span class="response-code response-error">400 BAD REQUEST</span> - Validation errors</p>
+        <pre>
+{
+  "title": ["This field is required."],
+  "end_date": ["End date cannot be before start date"]
+}
+        </pre>
+        
+        <p><span class="response-code response-error">403 FORBIDDEN</span> - Not a teacher/admin</p>
+        <pre>
+{
+  "detail": "You do not have permission to perform this action."
+}
+        </pre>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-get">GET</span> /api/courses/{id}/</h3>
+        <p>Get detailed information about a specific course</p>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - Course details</p>
+        <pre>
+{
+  "id": 1,
+  "title": "Introduction to Programming",
+  "description": "Learn programming basics",
+  "instructor": {
+    "id": 2,
+    "username": "teacher1",
+    "email": "teacher@example.com",
+    "first_name": "Teacher",
+    "last_name": "Name",
+    "role": "teacher"
+  },
+  "start_date": "2025-05-01",
+  "end_date": "2025-06-30",
+  "lessons": [
+    {
+      "id": 1,
+      "title": "Introduction to Variables",
+      "order": 1
+    },
+    {
+      "id": 2,
+      "title": "Control Structures",
+      "order": 2
+    },
+    ...
+  ],
+  "is_active": true,
+  "created_at": "2025-04-15T10:30:00Z",
+  "updated_at": "2025-04-16T14:25:00Z"
+}
+        </pre>
+        
+        <p><span class="response-code response-error">404 NOT FOUND</span> - Course not found</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-put">PUT</span> /api/courses/{id}/</h3>
+        <p>Update a course (teacher only)</p>
+        
+        <h4>Request</h4>
+        <pre>
+{
+  "title": "Updated Course Title",
+  "description": "Updated course description",
+  "start_date": "2025-06-01",
+  "end_date": "2025-07-31"
+}
+        </pre>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - Course updated successfully</p>
+        <p><span class="response-code response-error">403 FORBIDDEN</span> - Not the course instructor</p>
+        <p><span class="response-code response-error">404 NOT FOUND</span> - Course not found</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-delete">DELETE</span> /api/courses/{id}/</h3>
+        <p>Delete a course (teacher only)</p>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">204 NO CONTENT</span> - Course deleted successfully</p>
+        <p><span class="response-code response-error">403 FORBIDDEN</span> - Not the course instructor</p>
+        <p><span class="response-code response-error">404 NOT FOUND</span> - Course not found</p>
+    </div>
+    
+    <h2 class="section-title">Lessons</h2>
+    
+    <div class="endpoint">
+        <h3><span class="method method-get">GET</span> /api/lessons/</h3>
+        <p>Get list of lessons (filtered by course)</p>
+        
+        <h4>Parameters</h4>
+        <ul>
+            <li><code>course</code> - Filter by course ID</li>
+        </ul>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - List of lessons</p>
+        <pre>
+[
+  {
+    "id": 1,
+    "course": 1,
+    "course_title": "Introduction to Programming",
+    "title": "Introduction to Variables",
+    "content": "Variables are used to store information...",
+    "video_url": "https://example.com/video1.mp4",
+    "order": 1,
+    "created_at": "2025-04-15T10:30:00Z",
+    "updated_at": "2025-04-16T14:25:00Z"
+  },
+  ...
+]
+        </pre>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-post">POST</span> /api/lessons/</h3>
+        <p>Create a new lesson (teacher only)</p>
+        
+        <h4>Request</h4>
+        <pre>
+{
+  "course": 1,
+  "title": "New Lesson Title",
+  "content": "Lesson content goes here...",
+  "video_url": "https://example.com/video.mp4",
+  "order": 3
+}
+        </pre>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">201 CREATED</span> - Lesson created successfully</p>
+        <p><span class="response-code response-error">400 BAD REQUEST</span> - Validation errors</p>
+        <p><span class="response-code response-error">403 FORBIDDEN</span> - Not the course instructor</p>
+    </div>
+    
+    <h2 class="section-title">Enrollments</h2>
+    
+    <div class="endpoint">
+        <h3><span class="method method-post">POST</span> /api/enrollments/enroll/</h3>
+        <p>Enroll in a course (student only)</p>
+        
+        <h4>Request</h4>
+        <pre>
+{
+  "course_id": 1
+}
+        </pre>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">201 CREATED</span> - Enrollment created successfully</p>
+        <pre>
+{
+  "id": 15,
+  "user": 3,
+  "course": 1,
+  "status": "enrolled",
+  "enrolled_at": "2025-05-17T12:00:00Z",
+  "updated_at": "2025-05-17T12:00:00Z",
+  "user_details": {
+    "id": 3,
+    "username": "student1",
+    "email": "student@example.com",
+    "first_name": "Student",
+    "last_name": "Name"
+  },
+  "course_details": {
+    "id": 1,
+    "title": "Introduction to Programming",
+    "description": "Learn programming basics"
+  }
+}
+        </pre>
+        
+        <p><span class="response-code response-error">400 BAD REQUEST</span> - Already enrolled</p>
+        <p><span class="response-code response-error">404 NOT FOUND</span> - Course not found</p>
+    </div>
+    
+    <h2 class="section-title">Progress</h2>
+    
+    <div class="endpoint">
+        <h3><span class="method method-get">GET</span> /api/progress/course_progress/</h3>
+        <p>Get progress for a specific course</p>
+        
+        <h4>Parameters</h4>
+        <ul>
+            <li><code>course_id</code> - Course ID to check progress for</li>
+        </ul>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - Course progress</p>
+        <pre>
+{
+  "course_id": 1,
+  "course_title": "Introduction to Programming",
+  "total_lessons": 10,
+  "completed_lessons": 4,
+  "in_progress_lessons": 2,
+  "not_started_lessons": 4,
+  "completion_percentage": 40.0
+}
+        </pre>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-post">POST</span> /api/progress/</h3>
+        <p>Update progress for a lesson</p>
+        
+        <h4>Request</h4>
+        <pre>
+{
+  "lesson": 1,
+  "status": "completed"
+}
+        </pre>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">201 CREATED</span> - Progress updated successfully</p>
+        <p><span class="response-code response-error">400 BAD REQUEST</span> - Validation errors</p>
+    </div>
+    
+    <h2 class="section-title">Quizzes</h2>
+    
+    <div class="endpoint">
+        <h3><span class="method method-get">GET</span> /api/quizzes/</h3>
+        <p>Get list of quizzes (filtered by course)</p>
+        
+        <h4>Parameters</h4>
+        <ul>
+            <li><code>course</code> - Filter by course ID</li>
+        </ul>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - List of quizzes</p>
+        <pre>
+[
+  {
+    "id": 1,
+    "course": 1,
+    "title": "Variables Quiz",
+    "total_marks": 100,
+    "questions_count": 5,
+    "created_at": "2025-04-15T10:30:00Z",
+    "updated_at": "2025-04-16T14:25:00Z"
+  },
+  ...
+]
+        </pre>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-post">POST</span> /api/quizzes/{quiz_id}/submit_answers/</h3>
+        <p>Submit answers to a quiz</p>
+        
+        <h4>Request</h4>
+        <pre>
+{
+  "answers": [
+    {"question": 1, "answer_text": "Option A"},
+    {"question": 2, "answer_text": "true"}
+  ]
+}
+        </pre>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - Answers submitted and graded</p>
+        <pre>
+[
+  {
+    "question": 1,
+    "is_correct": true,
+    "marks_obtained": 10
+  },
+  {
+    "question": 2,
+    "is_correct": false,
+    "marks_obtained": 0
+  }
+]
+        </pre>
+        
+        <p><span class="response-code response-error">400 BAD REQUEST</span> - Validation errors</p>
+        <p><span class="response-code response-error">403 FORBIDDEN</span> - Not enrolled in course</p>
+    </div>
+    
+    <h2 class="section-title">Certificates</h2>
+    
+    <div class="endpoint">
+        <h3><span class="method method-get">GET</span> /api/certificates/</h3>
+        <p>Get list of certificates for current user</p>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - List of certificates</p>
+        <pre>
+[
+  {
+    "id": 1,
+    "user": 3,
+    "course": 1,
+    "certificate_code": "3-1-ABC12345",
+    "issue_date": "2025-05-15T10:30:00Z",
+    "user_details": {
+      "id": 3,
+      "username": "student1",
+      "email": "student@example.com",
+      "first_name": "Student",
+      "last_name": "Name"
+    },
+    "course_details": {
+      "id": 1,
+      "title": "Introduction to Programming",
+      "description": "Learn programming basics"
+    }
+  },
+  ...
+]
+        </pre>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-post">POST</span> /api/certificates/issue/</h3>
+        <p>Issue a certificate (teacher only)</p>
+        
+        <h4>Request</h4>
+        <pre>
+{
+  "course_id": 1,
+  "student_id": 3
+}
+        </pre>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">201 CREATED</span> - Certificate issued successfully</p>
+        <p><span class="response-code response-error">400 BAD REQUEST</span> - Certificate already exists or student not eligible</p>
+        <p><span class="response-code response-error">403 FORBIDDEN</span> - Not the course instructor</p>
+    </div>
+    
+    <h2 class="section-title">Notifications</h2>
+    
+    <div class="endpoint">
+        <h3><span class="method method-get">GET</span> /api/notifications/</h3>
+        <p>Get list of notifications for current user</p>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - List of notifications</p>
+        <pre>
+[
+  {
+    "id": 1,
+    "user": 3,
+    "title": "New Lesson Added",
+    "message": "A new lesson has been added to Introduction to Programming.",
+    "notification_type": "lesson_added",
+    "is_read": false,
+    "created_at": "2025-05-15T10:30:00Z"
+  },
+  ...
+]
+        </pre>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-post">POST</span> /api/notifications/mark_read/{notification_id}/</h3>
+        <p>Mark a notification as read</p>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - Notification marked as read</p>
+        <p><span class="response-code response-error">404 NOT FOUND</span> - Notification not found</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method method-post">POST</span> /api/notifications/mark_all_read/</h3>
+        <p>Mark all notifications as read</p>
+        
+        <h4>Response</h4>
+        <p><span class="response-code response-success">200 OK</span> - All notifications marked as read</p>
+    </div>
+</div>
+{% endblock %}

@@ -38,14 +38,17 @@
     <div class="card mb-4">
         <div class="card-body">
             <h4 class="card-title">Overall Progress</h4>
+            {% with progress=completion_percentage|default:0|floatformat:1 %}
             <div class="progress mb-3" style="height: 25px;">
                 <div class="progress-bar bg-success" role="progressbar" 
-                     style="width: {{ completion_percentage }}%;" 
-                     aria-valuenow="{{ completion_percentage }}" 
-                     aria-valuemin="0" aria-valuemax="100">
-                    {{ completion_percentage|floatformat:1 }}%
+                    data-progress="{{ progress }}"
+                    style="width: 0%;" 
+                    aria-valuenow="{{ progress }}" 
+                    aria-valuemin="0" aria-valuemax="100">
+                    {{ progress }}%
                 </div>
             </div>
+            {% endwith %}
             <div class="d-flex justify-content-between">
                 <span>
                     <strong>Status:</strong> 
