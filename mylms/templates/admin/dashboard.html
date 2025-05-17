@@ -100,13 +100,12 @@
                                 <span>Active Courses</span>
                                 <span class="badge bg-success">{{ active_courses }}</span>
                             </div>
-                            <div class="progress">
-                                <div class="progress-bar bg-success" role="progressbar" 
-                                    style="width: {{ active_courses|default:0|divisibleby:total_courses|yesno:'0,100' }}%;" 
-                                    aria-valuenow="{{ active_courses|default:0 }}" 
-                                    aria-valuemin="0" 
-                                    aria-valuemax="{{ total_courses|default:1 }}">
-                                </div>
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                data-progress="{{ active_courses|default:0|multiply:100|divisibleby:total_courses|default:0 }}"
+                                style="width: 0%;" 
+                                aria-valuenow="{{ active_courses|default:0 }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="{{ total_courses|default:1 }}">
                             </div>
                         </div>
                         <div class="mb-3">
@@ -116,7 +115,8 @@
                             </div>
                             <div class="progress">
                                 <div class="progress-bar bg-info" role="progressbar" 
-                                    style="width: {{ upcoming_courses|default:0|divisibleby:total_courses|yesno:'0,100' }}%;" 
+                                    data-progress="{{ upcoming_courses|default:0|multiply:100|divisibleby:total_courses|default:0 }}"
+                                    style="width: 0%;" 
                                     aria-valuenow="{{ upcoming_courses|default:0 }}" 
                                     aria-valuemin="0" 
                                     aria-valuemax="{{ total_courses|default:1 }}">
@@ -172,7 +172,8 @@
                             </div>
                             <div class="progress">
                                 <div class="progress-bar bg-success" role="progressbar" 
-                                    style="width: {{ recent_users|default:0|divisibleby:total_students|add:total_teachers|add:1|yesno:'0,100' }}%;" 
+                                    data-progress="{{ recent_users|default:0|multiply:100|divisibleby:total_students|add:total_teachers|add:1|default:0 }}"
+                                    style="width: 0%;"
                                     aria-valuenow="{{ recent_users|default:0 }}" 
                                     aria-valuemin="0" 
                                     aria-valuemax="{{ total_students|add:total_teachers|add:1 }}">
