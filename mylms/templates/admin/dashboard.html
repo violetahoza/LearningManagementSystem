@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - {{ site_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .progress {
+        height: 10px;
+        border-radius: 5px;
+    }
+    
+    .activity-list .list-group-item {
+        border-left: 3px solid transparent;
+    }
+    
+    .activity-list .list-group-item.enrollment {
+        border-left-color: #0d6efd;
+    }
+    
+    .activity-list .list-group-item.certificate {
+        border-left-color: #198754;
+    }
+    
+    .activity-list .list-group-item.user {
+        border-left-color: #6f42c1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Admin Dashboard</h1>
+        <div>
+            <a href="{% url 'admin:index' %}" class="btn btn-outline-primary">
+                <i class="bi bi-gear"></i> Django Admin
+            </a>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill fs-1"></i>
+                    <h2 class="mt-2">{{ total_students }}</h2>
+                    <p class="mb-0">Students</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-badge fs-1"></i>
+                    <h2 class="mt-2">{{ total_teachers }}</h2>
+                    <p class="mb-0">Teachers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-book fs-1"></i>
+                    <h2 class="mt-2">{{ total_courses }}</h2>
+                    <p class="mb-0">Courses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up fs-1"></i>
+                    <h2 class="mt-2">{{ completion_rate }}%</h2>
+                    <p class="mb-0">Completion Rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- More Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Course Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>Active Courses</span>
+                                <span class="badge bg-success">{{ active_courses }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                    style="width: {{ active_courses|default:0|divisibleby:total_courses|yesno:'0,100' }}%;" 
+                                    aria-valuenow="{{ active_courses|default:0 }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="{{ total_courses|default:1 }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>Upcoming Courses</span>
+                                <span class="badge bg-info">{{ upcoming_courses }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                    style="width: {{ upcoming_courses|default:0|divisibleby:total_courses|yesno:'0,100' }}%;" 
+                                    aria-valuenow="{{ upcoming_courses|default:0 }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="{{ total_courses|default:1 }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>Total Enrollments</span>
+                                <span class="badge bg-primary">{{ total_enrollments }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-primary" role="progressbar" 
+                                    style="width: 100%;" 
+                                    aria-valuenow="{{ total_enrollments|default:0 }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="{{ total_enrollments|default:1 }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'courses:course_list' %}" class="btn btn-sm btn-outline-primary">View All Courses</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">User Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>Total Users</span>
+                                <span class="badge bg-primary">{{ total_students|add:total_teachers|add:1 }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-primary" role="progressbar" 
+                                    style="width: 100%;" 
+                                    aria-valuenow="{{ total_students|add:total_teachers|add:1 }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="{{ total_students|add:total_teachers|add:1 }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>New Users (30 days)</span>
+                                <span class="badge bg-success">{{ recent_users }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                    style="width: {{ recent_users|default:0|divisibleby:total_students|add:total_teachers|add:1|yesno:'0,100' }}%;" 
+                                    aria-valuenow="{{ recent_users|default:0 }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="{{ total_students|add:total_teachers|add:1 }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>Certificates Issued</span>
+                                <span class="badge bg-warning">{{ recent_certificates|length }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning" role="progressbar" 
+                                    style="width: 100%;" 
+                                    aria-valuenow="{{ recent_certificates|length }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="{{ recent_certificates|length|default:1 }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'admin:accounts_user_changelist' %}" class="btn btn-sm btn-outline-primary">Manage Users</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    <a href="{% url 'admin:accounts_user_add' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-plus"></i> Add New User
+                    </a>
+                    <a href="{% url 'courses:create_course' %}" class="btn btn-outline-success">
+                        <i class="bi bi-plus-circle"></i> Create Course
+                    </a>
+                    <a href="{% url 'certificates:certificate_list' %}" class="btn btn-outline-warning">
+                        <i class="bi bi-award"></i> View Certificates
+                    </a>
+                    <a href="{% url 'admin:index' %}" class="btn btn-outline-danger">
+                        <i class="bi bi-gear"></i> Admin Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Recent Enrollments</h5>
+                </div>
+                <div class="list-group list-group-flush activity-list">
+                    {% for enrollment in recent_enrollments %}
+                        <div class="list-group-item enrollment">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ enrollment.user.get_full_name }}</strong> enrolled in 
+                                    <a href="{% url 'courses:course_detail' course_id=enrollment.course.id %}">{{ enrollment.course.title }}</a>
+                                </div>
+                                <small class="text-muted">{{ enrollment.enrolled_at|timesince }} ago</small>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="list-group-item">
+                            <p class="mb-0">No recent enrollments.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'admin:enrollments_enrollment_changelist' %}" class="btn btn-sm btn-outline-primary">View All Enrollments</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Recent Certificates</h5>
+                </div>
+                <div class="list-group list-group-flush activity-list">
+                    {% for certificate in recent_certificates %}
+                        <div class="list-group-item certificate">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ certificate.user.get_full_name }}</strong> received certificate for 
+                                    <a href="{% url 'courses:course_detail' course_id=certificate.course.id %}">{{ certificate.course.title }}</a>
+                                </div>
+                                <small class="text-muted">{{ certificate.issue_date|timesince }} ago</small>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="list-group-item">
+                            <p class="mb-0">No recent certificates.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'certificates:certificate_list' %}" class="btn btn-sm btn-outline-primary">View All Certificates</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

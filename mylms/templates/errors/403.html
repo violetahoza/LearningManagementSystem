@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}403 Forbidden - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="error-container">
+                <h1 class="display-1 text-warning">403</h1>
+                <h2 class="mb-4">Access Denied</h2>
+                <p class="lead mb-4">You don't have permission to access this page.</p>
+                <div class="mb-5">
+                    <a href="{% url 'core:home' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-house-fill"></i> Go to Homepage
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'core:dashboard' %}" class="btn btn-outline-primary btn-lg ms-2">
+                            <i class="bi bi-speedometer2"></i> Go to Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg ms-2">
+                            <i class="bi bi-box-arrow-in-right"></i> Log In
+                        </a>
+                    {% endif %}
+                </div>
+                <p>If you believe you should have access to this page, please contact your administrator.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

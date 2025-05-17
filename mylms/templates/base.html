@@ -45,6 +45,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'core:admin:dashboard' %}">Admin Dashboard</a>
+                            </li>
                         {% endif %}
                     {% endif %}
                     <li class="nav-item">
@@ -85,7 +88,11 @@
                                 <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>
                                 <li><a class="dropdown-item" href="{% url 'accounts:change_password' %}">Change Password</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'accounts:logout' %}">
+                                        <i class="bi bi-box-arrow-right"></i> Logout
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                     {% else %}

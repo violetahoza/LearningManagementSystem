@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Course Students: {{ course.title }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course_id=course.id %}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Students</li>
+        </ol>
+    </nav>
+
+    <h1 class="mb-4">Course Students: {{ course.title }}</h1>
+    
+    {% if enrollments %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Enrolled Students</h4>
+                    <span class="badge bg-light text-dark">{{ enrollments.count }} Students</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Enrolled Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in enrollments %}
+                                <tr>
+                                    <td>{{ enrollment.user.get_full_name }}</td>
+                                    <td>{{ enrollment.user.email }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ enrollment.status|yesno:'success,primary,danger' }}">
+                                            {{ enrollment.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ enrollment.enrolled_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ enrollment.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ enrollment.id }}">
+                                                <li>
+                                                    <a href="{% url 'progress:student_progress' student_id=enrollment.user.id course_id=course.id %}" class="dropdown-item">
+                                                        <i class="bi bi-bar-chart"></i> View Progress
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <form method="post">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="enrollment_id" value="{{ enrollment.id }}">
+                                                        <input type="hidden" name="status" value="enrolled">
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="bi bi-check-circle"></i> Set as Enrolled
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="enrollment_id" value="{{ enrollment.id }}">
+                                                        <input type="hidden" name="status" value="completed">
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="bi bi-trophy"></i> Set as Completed
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="enrollment_id" value="{{ enrollment.id }}">
+                                                        <input type="hidden" name="status" value="dropped">
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="bi bi-x-circle"></i> Set as Dropped
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                {% if enrollment.status == 'completed' %}
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a href="{% url 'certificates:generate_certificate' course_id=course.id student_id=enrollment.user.id %}" class="dropdown-item">
+                                                            <i class="bi bi-award"></i> Issue Certificate
+                                                        </a>
+                                                    </li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i> No students are enrolled in this course yet.
+        </div>
+    {% endif %}
+    
+    <div class="text-center mb-5">
+        <a href="{% url 'courses:course_detail' course_id=course.id %}" class="btn btn-primary">
+            <i class="bi bi-arrow-left"></i> Back to Course
+        </a>
+    </div>
+</div>
+{% endblock %}

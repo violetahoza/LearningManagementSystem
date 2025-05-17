@@ -209,9 +209,18 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Animate progress bars
-        const progressBars = document.querySelectorAll('.progress-bar');
+        // const progressBars = document.querySelectorAll('.progress-bar');
+        // progressBars.forEach(bar => {
+        //     const value = bar.getAttribute('aria-valuenow');
+        //     // Start at 0 and animate to the actual value
+        //     bar.style.width = '0%';
+        //     setTimeout(() => {
+        //         bar.style.width = value + '%';
+        //     }, 200);
+        // });
+
         progressBars.forEach(bar => {
-            const value = bar.getAttribute('aria-valuenow');
+            const value = bar.getAttribute('data-progress');
             // Start at 0 and animate to the actual value
             bar.style.width = '0%';
             setTimeout(() => {

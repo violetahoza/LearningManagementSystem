@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Lesson - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course_id=course.id %}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'lessons:lesson_detail' lesson_id=lesson.id %}">{{ lesson.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Delete Lesson</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h1 class="card-title text-center mb-4">Delete Lesson</h1>
+                    
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Are you sure you want to delete this lesson?
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ lesson.title }}</h5>
+                            <p class="card-text"><strong>Course:</strong> {{ course.title }}</p>
+                            <p class="card-text"><strong>Order:</strong> {{ lesson.order }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle-fill"></i> This action cannot be undone. Deleting this lesson will also delete all student progress related to it.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a href="{% url 'lessons:lesson_detail' lesson_id=lesson.id %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Delete Lesson
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

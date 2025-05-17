@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Certificate - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow my-5">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="card-title h3 mb-0">Verify Certificate</h1>
+                </div>
+                <div class="card-body">
+                    {% if certificate %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle-fill me-2"></i> <strong>Certificate Verified!</strong>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h2>Certificate Details</h2>
+                            <table class="table">
+                                <tr>
+                                    <th>Certificate ID:</th>
+                                    <td>{{ certificate.certificate_code }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Student Name:</th>
+                                    <td>{{ certificate.user.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Course:</th>
+                                    <td>{{ certificate.course.title }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Issue Date:</th>
+                                    <td>{{ certificate.issue_date|date:"F j, Y" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="text-center mb-3">
+                            <a href="{% url 'certificates:certificate_detail' certificate_id=certificate.id %}" class="btn btn-primary">
+                                <i class="bi bi-eye"></i> View Certificate
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-info-circle-fill me-2"></i> Enter a certificate code to verify its authenticity.
+                        </div>
+                        
+                        <form method="get" action="{% url 'certificates:verify_certificate' certificate_code='verify' %}">
+                            <div class="mb-3">
+                                <label for="certificate_code" class="form-label">Certificate Code</label>
+                                <input type="text" class="form-control" id="certificate_code" name="code" required 
+                                    placeholder="Format: USER-COURSE-CODE (e.g., 123-456-ABCD1234)">
+                                <div class="form-text">The certificate code can be found at the bottom of the certificate.</div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Verify Certificate</button>
+                            </div>
+                        </form>
+                        
+                        {% if error_message %}
+                            <div class="alert alert-danger mt-4">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error_message }}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

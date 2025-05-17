@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Courses - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>All Courses</h1>
+            <p class="lead">Browse our catalog of courses designed to help you learn new skills and achieve your goals.</p>
+        </div>
+        {% if user.is_teacher or user.is_admin %}
+            <div class="col-md-4 text-md-end">
+                <a href="{% url 'courses:create_course' %}" class="btn btn-success btn-lg">
+                    <i class="bi bi-plus-circle"></i> Create Course
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Filter/Search Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" placeholder="Course title or description..." value="{{ request.GET.search|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="" {% if not request.GET.status %}selected{% endif %}>All</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="upcoming" {% if request.GET.status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+                        <option value="past" {% if request.GET.status == 'past' %}selected{% endif %}>Past</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if courses %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for course in courses %}
+                <div class="col">
+                    <div class="card h-100 course-card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ course.title }}</h5>
+                            <p class="text-muted">
+                                <small>
+                                    <i class="bi bi-person"></i> {{ course.instructor.first_name }} {{ course.instructor.last_name }}
+                                </small>
+                            </p>
+                            
+                            <!-- Course Status Badge -->
+                            {% if course.is_active %}
+                                <span class="badge bg-success mb-2">Active</span>
+                            {% else %}
+                                {% if course.start_date > today %}
+                                    <span class="badge bg-info mb-2">Upcoming</span>
+                                {% else %}
+                                    <span class="badge bg-secondary mb-2">Past</span>
+                                {% endif %}
+                            {% endif %}
+                            
+                            <!-- Enrollment Badge -->
+                            {% if course.id in enrolled_courses %}
+                                <span class="badge bg-primary mb-2">Enrolled</span>
+                            {% endif %}
+                            
+                            <p class="card-text">{{ course.description|truncatechars:150 }}</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> {{ course.start_date|date:"M d, Y" }}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="bi bi-people"></i> {{ course.get_enrollments_count }} students
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{% url 'courses:course_detail' course_id=course.id %}" class="btn btn-primary w-100">
+                                View Course
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i> 
+            {% if request.GET.search or request.GET.status %}
+                No courses match your filter criteria. <a href="{% url 'courses:course_list' %}">Clear filters</a>
+            {% else %}
+                No courses are available at this time.
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}Course Statistics: {{ course.title }} - {{ site_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        transition: transform 0.3s;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .progress {
+        height: 20px;
+    }
+
+    .chart-container {
+        height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course_id=course.id %}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Statistics</li>
+        </ol>
+    </nav>
+
+    <h1 class="mb-4">Course Statistics: {{ course.title }}</h1>
+    
+    <!-- Enrollment Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white stats-card">
+                <div class="card-body text-center">
+                    <h1 class="display-4">{{ enrollment_stats.total }}</h1>
+                    <p class="lead">Total Enrollments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white stats-card">
+                <div class="card-body text-center">
+                    <h1 class="display-4">{{ enrollment_stats.active }}</h1>
+                    <p class="lead">Active Students</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white stats-card">
+                <div class="card-body text-center">
+                    <h1 class="display-4">{{ enrollment_stats.completed }}</h1>
+                    <p class="lead">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white stats-card">
+                <div class="card-body text-center">
+                    <h1 class="display-4">{{ enrollment_stats.dropped }}</h1>
+                    <p class="lead">Dropped</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lesson Completion Stats -->
+    <h2 class="mb-3">Lesson Completion</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Lesson</th>
+                            <th>Not Started</th>
+                            <th>In Progress</th>
+                            <th>Completed</th>
+                            <th>Completion Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in lesson_stats %}
+                            <tr>
+                                <td>{{ stat.lesson.title }}</td>
+                                <td>{{ stat.not_started }}</td>
+                                <td>{{ stat.in_progress }}</td>
+                                <td>{{ stat.completed }}</td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                            data-progress="{{ stat.completion_rate }}"
+                                            style="width: 0%;" 
+                                            aria-valuenow="{{ stat.completion_rate }}" 
+                                            aria-valuemin="0" aria-valuemax="100">
+                                            {{ stat.completion_rate|floatformat:1 }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quiz Statistics -->
+    {% if quiz_stats %}
+        <h2 class="mb-3">Quiz Statistics</h2>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Quiz</th>
+                                <th>Attempts</th>
+                                <th>Average Score</th>
+                                <th>Average Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in quiz_stats %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'quizzes:quiz_statistics' quiz_id=stat.quiz.id %}">
+                                            {{ stat.quiz.title }}
+                                        </a>
+                                    </td>
+                                    <td>{{ stat.attempts }}</td>
+                                    <td>{{ stat.avg_score|floatformat:1 }} / {{ stat.max_score }}</td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar {% if stat.avg_percentage >= 70 %}bg-success{% elif stat.avg_percentage >= 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                role="progressbar" 
+                                                data-progress="{{ stat.avg_percentage }}"
+                                                style="width: 0%;" 
+                                                aria-valuenow="{{ stat.avg_percentage }}" 
+                                                aria-valuemin="0" aria-valuemax="100">
+                                                {{ stat.avg_percentage|floatformat:1 }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Generate Report Button -->
+    <div class="text-center mb-5">
+        <a href="#" class="btn btn-primary" onclick="window.print();">
+            <i class="bi bi-printer"></i> Print Report
+        </a>
+        <a href="{% url 'courses:course_detail' course_id=course.id %}" class="btn btn-outline-secondary ms-2">
+            <i class="bi bi-arrow-left"></i> Back to Course
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const progressBars = document.querySelectorAll('.progress-bar');
+        progressBars.forEach(bar => {
+            const progress = bar.getAttribute('data-progress');
+            // Start at 0 and animate to the actual value
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = progress + '%';
+            }, 200);
+        });
+    });
+</script>
+{% endblock %}
+

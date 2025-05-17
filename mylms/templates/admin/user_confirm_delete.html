@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}User Details: {{ user_to_view.username }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:admin:dashboard' %}">Admin Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'core:admin:user_list' %}">Users</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ user_to_view.username }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">User Information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-person-circle display-1"></i>
+                        <h2 class="mt-2">{{ user_to_view.get_full_name }}</h2>
+                        <span class="badge bg-{% if user_to_view.role == 'admin' %}secondary{% elif user_to_view.role == 'teacher' %}info{% else %}success{% endif %} mb-2">
+                            {{ user_to_view.get_role_display }}
+                        </span>
+                        {% if not user_to_view.is_active %}
+                            <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><strong>Username:</strong></span>
+                            <span>{{ user_to_view.username }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><strong>Email:</strong></span>
+                            <span>{{ user_to_view.email }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><strong>Date Joined:</strong></span>
+                            <span>{{ user_to_view.date_joined|date:"F j, Y" }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><strong>Last Login:</strong></span>
+                            <span>{{ user_to_view.last_login|date:"F j, Y, g:i a"|default:"Never" }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'core:admin:edit_user' user_id=user_to_view.id %}" class="btn btn-primary">
+                            <i class="bi bi-pencil"></i> Edit User
+                        </a>
+                        {% if user_to_view.id != request.user.id %}
+                            <a href="{% url 'core:admin:delete_user' user_id=user_to_view.id %}" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Delete User
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            {% if user_type == 'student' %}
+                <!-- Student-specific content -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="card-title mb-0">Enrollment Statistics</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center mb-4">
+                            <div class="col-md-3">
+                                <div class="h3">{{ enrollment_stats.total }}</div>
+                                <div class="text-muted">Total</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="h3">{{ enrollment_stats.active }}</div>
+                                <div class="text-muted">Active</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="h3">{{ enrollment_stats.completed }}</div>
+                                <div class="text-muted">Completed</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="h3">{{ enrollment_stats.dropped }}</div>
+                                <div class="text-muted">Dropped</div>
+                            </div>
+                        </div>
+                        
+                        {% if enrollments %}
+                            <h5>Enrolled Courses</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Course</th>
+                                            <th>Instructor</th>
+                                            <th>Status</th>
+                                            <th>Enrolled Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for enrollment in enrollments %}
+                                            <tr>
+                                                <td>
+                                                    <a href="{% url 'courses:course_detail' course_id=enrollment.course.id %}">
+                                                        {{ enrollment.course.title }}
+                                                    </a>
+                                                </td>
+                                                <td>{{ enrollment.course.instructor.get_full_name }}</td>
+                                                <td>
+                                                    <span class="badge bg-{{ enrollment.status|yesno:'success,primary,danger' }}">
+                                                        {{ enrollment.get_status_display }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ enrollment.enrolled_at|date:"M d, Y" }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle-fill"></i> This student is not enrolled in any courses.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-white">
+                        <h4 class="card-title mb-0">Certificates</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if certificates %}
+                            <div class="row">
+                                {% for certificate in certificates %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ certificate.course.title }}</h5>
+                                                <p class="text-muted">
+                                                    <small>Issued on {{ certificate.issue_date|date:"F j, Y" }}</small>
+                                                </p>
+                                                <p class="card-text small">Certificate ID: {{ certificate.certificate_code }}</p>
+                                            </div>
+                                            <div class="card-footer bg-transparent">
+                                                <a href="{% url 'certificates:certificate_detail' certificate_id=certificate.id %}" class="btn btn-sm btn-primary">
+                                                    View Certificate
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle-fill"></i> This student has not earned any certificates yet.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            {% elif user_type == 'teacher' %}
+                <!-- Teacher-specific content -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="card-title mb-0">Teaching Statistics</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center mb-4">
+                            <div class="col-md-4">
+                                <div class="h3">{{ courses|length }}</div>
+                                <div class="text-muted">Total Courses</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="h3">{{ student_count }}</div>
+                                <div class="text-muted">Total Students</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="h3">{{ completion_rate }}%</div>
+                                <div class="text-muted">Completion Rate</div>
+                            </div>
+                        </div>
+                        
+                        {% if courses %}
+                            <h5>Courses</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Period</th>
+                                            <th>Status</th>
+                                            <th>Students</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for course in courses %}
+                                            <tr>
+                                                <td>
+                                                    <a href="{% url 'courses:course_detail' course_id=course.id %}">
+                                                        {{ course.title }}
+                                                    </a>
+                                                </td>
+                                                <td>{{ course.start_date|date:"M d, Y" }} - {{ course.end_date|date:"M d, Y" }}</td>
+                                                <td>
+                                                    {% if course.is_active %}
+                                                        <span class="badge bg-success">Active</span>
+                                                    {% else %}
+                                                        {% if course.start_date > today %}
+                                                            <span class="badge bg-info">Upcoming</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">Past</span>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ course.get_enrollments_count }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle-fill"></i> This teacher has not created any courses yet.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            {% else %}
+                <!-- Admin-specific content -->
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="card-title mb-0">Administrator Account</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill"></i> This is an administrator account with full access to system functionality.
+                        </div>
+                        
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item">
+                                <strong>Permissions:</strong>
+                                <ul class="mt-2">
+                                    <li>User Management (create, edit, delete)</li>
+                                    <li>Course Management</li>
+                                    <li>System Statistics and Reporting</li>
+                                    <li>System-wide Notifications</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

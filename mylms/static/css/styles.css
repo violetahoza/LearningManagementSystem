@@ -9,6 +9,10 @@ main {
     flex: 1;
 }
 
+.progress-bar {
+    transition: width 1s ease-in-out;
+}
+
 /* Card Styles */
 .card {
     border-radius: 0.5rem;

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Reorder Lessons - {{ site_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+<style>
+    .lesson-item {
+        cursor: move;
+        transition: background-color 0.3s;
+    }
+    
+    .lesson-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .ui-sortable-helper {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .ui-sortable-placeholder {
+        visibility: visible !important;
+        background-color: #e9ecef;
+        border: 2px dashed #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course_id=course.id %}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Reorder Lessons</li>
+        </ol>
+    </nav>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h1 class="h3 mb-0">Reorder Lessons: {{ course.title }}</h1>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle-fill"></i> Drag and drop the lessons to change their order, then click "Save Order" to save the changes.
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                {{ form.lesson_order }}
+                
+                <div class="list-group" id="lesson-list">
+                    {% for lesson in lessons %}
+                        <div class="list-group-item lesson-item" data-id="{{ lesson.id }}" data-order="{{ lesson.order }}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-grip-vertical me-2 text-muted"></i>
+                                    <span class="order-number">{{ lesson.order }}.</span>
+                                    <span class="lesson-title">{{ lesson.title }}</span>
+                                </div>
+                                <div>
+                                    <a href="{% url 'lessons:lesson_detail' lesson_id=lesson.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-4 d-flex justify-content-between">
+                    <a href="{% url 'courses:course_detail' course_id=course.id %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Save Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize sortable list
+        $("#lesson-list").sortable({
+            update: function(event, ui) {
+                updateLessonOrder();
+            }
+        });
+        
+        // Function to update order numbers and hidden input value
+        function updateLessonOrder() {
+            let orderData = {};
+            
+            // Update order numbers displayed in UI
+            $(".lesson-item").each(function(index) {
+                const lessonId = $(this).data('id');
+                const newOrder = index + 1;
+                
+                $(this).find('.order-number').text(newOrder + '.');
+                orderData[lessonId] = newOrder;
+            });
+            
+            // Update hidden input with order data
+            $('#id_lesson_order').val(JSON.stringify(orderData));
+        }
+        
+        // Initialize order data on page load
+        updateLessonOrder();
+    });
+</script>
+{% endblock %}

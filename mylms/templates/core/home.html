@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
-{% load static %}
 
-{% block title %}{{ site_name }} - Learning Made Easy{% endblock %}
+{% block title %}Home - {{ site_name }}{% endblock %}
 
 {% block content %}
+<div class="container">
     <!-- Hero Section -->
     <section class="py-5 text-center container">
         <div class="row py-lg-5">
@@ -64,14 +64,26 @@
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
                 {% for course in featured_courses %}
                     <div class="col">
-                        <div class="card h-100">
+                        <div class="card h-100 course-card">
                             <div class="card-body">
                                 <h5 class="card-title">{{ course.title }}</h5>
-                                <p class="card-text text-muted">
+                                <p class="text-muted">
                                     <small>
                                         <i class="bi bi-person"></i> {{ course.instructor.first_name }} {{ course.instructor.last_name }}
                                     </small>
                                 </p>
+                                
+                                <!-- Course Status Badge -->
+                                {% if course.is_active %}
+                                    <span class="badge bg-success mb-2">Active</span>
+                                {% else %}
+                                    {% if course.start_date > today %}
+                                        <span class="badge bg-info mb-2">Upcoming</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary mb-2">Past</span>
+                                    {% endif %}
+                                {% endif %}
+                                
                                 <p class="card-text">{{ course.description|truncatechars:100 }}</p>
                             </div>
                             <div class="card-footer bg-transparent">
@@ -98,4 +110,5 @@
             {% endif %}
         </div>
     </section>
+</div>
 {% endblock %}

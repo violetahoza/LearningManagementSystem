@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Lesson - {{ site_name }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_detail' course_id=course.id %}">{{ course.title }}</a></li>
+            {% if action == 'Edit' %}
+                <li class="breadcrumb-item"><a href="{% url 'lessons:lesson_detail' lesson_id=lesson.id %}">{{ lesson.title }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">{{ action }} Lesson</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h1 class="card-title text-center mb-4">{{ action }} Lesson</h1>
+                    <p class="text-center mb-4">Course: {{ course.title }}</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.title.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">Content</label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.content.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.video_url.id_for_label }}" class="form-label">Video URL (Optional)</label>
+                            {{ form.video_url }}
+                            <div class="form-text">Enter a YouTube or Vimeo embed URL.</div>
+                            {% if form.video_url.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.video_url.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.order.id_for_label }}" class="form-label">Order</label>
+                            {{ form.order }}
+                            <div class="form-text">The order in which this lesson appears in the course.</div>
+                            {% if form.order.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.order.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'courses:course_detail' course_id=course.id %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">Save Lesson</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#lesson-content-editor').summernote({
+            height: 300,
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ]
+        });
+    });
+</script>
+{% endblock %}
